@@ -74,8 +74,12 @@ WSGI_APPLICATION = 'djangoback.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sw_project_db',
+        'USER': 'postgres',
+        'PASSWORD': '922106840246',
+        'HOST': '2001:da8:100e:5002:2e0:4c05:e068:278',  # 或者你的虚拟局域网IP，比如 10.10.10.5
+        'PORT': '5432',
     }
 }
 
