@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djangoback',
+    'rest_framework',
+    'corsheaders',
 ]
+
+
+#使用扩展后的自定义用户字段 RegisteredUser 代替默认的 User
+AUTH_USER_MODEL = 'djangoback.RegisteredUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -47,7 +54,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'djangoback.urls'
 
@@ -75,10 +86,10 @@ WSGI_APPLICATION = 'djangoback.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sw_project_db',
+        'NAME': 'popquiz_db',
         'USER': 'postgres',
         'PASSWORD': '922106840246',
-        'HOST': '2001:da8:100e:5002:2e0:4c05:e068:278',  # 或者你的虚拟局域网IP，比如 10.10.10.5
+        'HOST': '172.16.3.179',  # 或者你的虚拟局域网IP，比如 10.10.10.5
         'PORT': '5432',
     }
 }
