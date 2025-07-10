@@ -10,19 +10,19 @@ function toggleDropdown() {
 </script>
 
 <template>
-  <nav class="fixed top-0 left-0 w-full h-16 flex items-center justify-between px-6 shadow-md bg-white z-50">
+  <nav class="top-nav">
     <!-- 左侧 Logo -->
-    <div class="flex items-center">
-      <img src="@/assets/logo.svg" alt="Logo" class="h-8 w-auto" />
-      <span class="ml-2 font-bold text-lg text-gray-800">AI Pop Quiz</span>
+    <div class="logo-area">
+      <img src="@/assets/logo.svg" alt="Logo" class="logo-img" />
+      <span class="site-name">AI Pop Quiz</span>
     </div>
 
     <!-- 右侧头像及弹出框 -->
-    <div class="relative">
+    <div class="avatar-area">
       <img
-        src=""
+        src="../assets/avatar.jpg"
         alt="Avatar"
-        class="h-10 w-10 rounded-full cursor-pointer border border-gray-300"
+        class="avatar-img"
         @click="toggleDropdown"
       />
 
@@ -37,5 +37,48 @@ function toggleDropdown() {
 
 
 <style scoped>
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
 
+.logo-area {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 32px;
+  width: auto;
+}
+
+.site-name {
+  margin-left: 8px;
+  font-weight: bold;
+  font-size: 18px;
+  color: #2d2d2d;
+}
+
+.avatar-area {
+  position: relative;
+}
+
+.avatar-img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  object-fit: cover;
+}
 </style>
