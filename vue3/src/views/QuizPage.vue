@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import axios from '@/utils/request'
 import QuizCard from '../components/QuizCard.vue'  // 你的题卡组件路径
 
 interface QuizItem {
@@ -25,7 +25,7 @@ const currentQuiz = computed(() => quizList.value[currentQuizIndex.value])
 
 const fetchQuizzes = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/popquiz/')
+    const res = await axios.get('popquiz/')
     console.log("数据请求成功:" + res.data)
     quizList.value = res.data
   } catch (err) {
@@ -73,5 +73,7 @@ onMounted(fetchQuizzes)
   padding: 2rem;
   max-width: 600px;
   margin: auto;
+  min-width: 600px;
+  min-height: 800px;
 }
 </style>

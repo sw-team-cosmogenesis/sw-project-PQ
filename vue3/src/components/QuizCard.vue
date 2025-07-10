@@ -22,6 +22,7 @@ const submit = () => {
       answerIndex: selectedIndex.value,
       answerText: props.options[selectedIndex.value]
     })
+    selectedIndex.value = null
   }
 }
 
@@ -53,6 +54,7 @@ const submit = () => {
   background: #f8f9fa;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   max-width: 500px;
+  max-height: 700px;
   margin: auto;
 }
 .question {
