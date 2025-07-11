@@ -70,7 +70,6 @@ class Presentation(models.Model):
     代表一次演讲、一堂课或一次分享会。
     演讲者可创建多个 Presentation，每个演讲对应多个 PopQuiz。
     """
-
     id = models.BigIntegerField(primary_key=True, editable=False)  # 雪花主键
 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # 外部引用安全ID
@@ -157,3 +156,44 @@ class PopQuiz(models.Model):
 
     def __str__(self):
         return f"PopQuiz # ({self.question_type}) for Presentation {self.presentation}"
+
+
+class Answer(models.Model):
+    id = models.BigIntegerField(primary_key=True, editable=False)
+
+    user = models.ForeignKey(
+        RegisteredUser,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        help_text="作答者"
+    )
+
+    quiz = models.ForeignKey(
+        PopQuiz,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        help_text="对应的题目"
+    )
+
+    presentation = models.ForeignKey(
+        Presentation,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        help_text="所属演讲"
+    )
+
+    selected_options = models.JSONField(
+        help_text="作答选项（支持多选），格式如：[\"A\"] 或 [\"A\", \"C\"]"
+    )
+
+    is_correct = models.BooleanField(
+        null=True,  # 可选，便于后期统一打分
+        help_text="是否作答正确，可在后台评判后赋值"
+    )
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = next(generator)
+        super().save(*args, **kwargs)

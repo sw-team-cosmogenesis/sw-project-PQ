@@ -49,13 +49,15 @@ const submit = () => {
 
 <style scoped>
 .quiz-card {
-  padding: 1rem;
+  width: 100%;                     /* 宽度占满容器 */
+  max-width: 500px;                /* 限制最大宽度 */
+  min-width: 300px;    /* 最小宽度 */
+  min-height: 400px;   /* 最小高度 */
+  margin: 0 auto;                  /* ✅ 水平居中 */
+  padding: 1.5rem;
   border-radius: 12px;
   background: #f8f9fa;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  max-width: 500px;
-  max-height: 700px;
-  margin: auto;
 }
 .question {
   font-size: 1.25rem;
@@ -79,7 +81,8 @@ const submit = () => {
   border-color: #3b82f6;
 }
 .submit-btn {
-  margin-top: 1rem;
+  display: block;
+  margin: 1rem auto 0 auto;
   background-color: #3b82f6;
   color: white;
   border: none;

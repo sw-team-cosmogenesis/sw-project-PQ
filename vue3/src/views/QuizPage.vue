@@ -46,10 +46,10 @@ onMounted(fetchQuizzes)
 </script>
 
 <template>
-  <div class="quiz-page">
+    <div class="quiz-page">
     <div v-if="loading">题目加载中...</div>
     <div v-else-if="error">{{ error }}</div>
-    <div v-else-if="currentQuizIndex < quizList.length">
+    <div v-else-if="currentQuizIndex < quizList.length" class="quiz-wrapper">
       <QuizCard
         :question="currentQuiz.question_text"
         :options="currentQuiz.options"
@@ -57,7 +57,7 @@ onMounted(fetchQuizzes)
         @submit="handleSubmit"
       />
     </div>
-    <div v-else>
+    <div v-else class="quiz-wrapper">
       <h2>你已完成全部题目!</h2>
       <ul>
         <li v-for="(answer, index) in answers" :key="index">
@@ -70,10 +70,31 @@ onMounted(fetchQuizzes)
 
 <style scoped>
 .quiz-page {
-  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 40rem;
+  box-sizing: border-box;
+  padding: 2rem 10vw 2rem 2rem;
+}
+
+.quiz-wrapper {
+  width: 100%;
   max-width: 600px;
-  margin: auto;
-  min-width: 600px;
-  min-height: 800px;
+}
+
+/* 题目完成后的样式 */
+h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
 }
 </style>
