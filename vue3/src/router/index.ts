@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PresenterPage from "@/views/PresenterPage.vue";
 import Home from "@/views/Home.vue";
-import Presentation from "@/views/Presentation.vue";
+import PresentationView from "@/views/PresentationView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,15 +21,21 @@ const router = createRouter({
       component: () => import('../views/PresenterPage.vue'),
     },
 
-      {
+    {
     path: '/presenter',
+      name: 'presenter',
     component: PresenterPage,
     children: [
       { path: '', redirect: '/presenter/home' },  // 默认跳转
       { path: 'home', component: Home },
-      { path: 'presentation', component: Presentation },
+      { path: 'presentation', component: PresentationView },
     ],
   },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginPage.vue'),
+    }
   ],
 })
 
