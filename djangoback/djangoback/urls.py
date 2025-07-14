@@ -18,11 +18,14 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import PopQuizViewSet
+from .views import PopQuizViewSet, RegisterView, LoginView, PresentationListView
 
 router = DefaultRouter()
 router.register(r'popquiz', PopQuizViewSet, basename='popquiz')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/register/', RegisterView.as_view(), name='register'),
+    path('api/login/', LoginView.as_view(), name='login'),
+    path('api/presentations/', PresentationListView.as_view(), name='presentations'),
 ]

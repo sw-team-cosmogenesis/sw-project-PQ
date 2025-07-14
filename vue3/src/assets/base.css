@@ -84,3 +84,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 移除默认密码可见图标（Edge） */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* 移除 Chrome 密码字段右侧的装饰容器 */
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+/* 去除浏览器默认密码输入框样式 */
+input[type="password"] {
+  appearance: none;
+  -webkit-appearance: none;
+}

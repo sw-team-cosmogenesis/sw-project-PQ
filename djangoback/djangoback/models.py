@@ -13,6 +13,13 @@ generator = SnowflakeGenerator(instance=1, epoch=custom_epoch)
 class RegisteredUser(AbstractUser):
     id = models.BigIntegerField(primary_key=True, editable=False, help_text="雪花算法生成的 id ，作为主键使用")
 
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
+
     ROLE_CHOICES = (
         ('audience', 'Audience'),
         ('speaker', 'Speaker'),
@@ -34,35 +41,6 @@ class RegisteredUser(AbstractUser):
         return f"{self.username} ({self.role})"
 
 
-#游客模型
-class GuestUser(models.Model):
-
-    id = models.BigIntegerField(primary_key=True, editable=False)  # 雪花ID主键
-
-    uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False, help_text="由前端生成，作为前后端通信的索引")
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_seen_at = models.DateTimeField(auto_now=True)
-
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(null=True, blank=True)
-
-    registered_user = models.ForeignKey(
-        RegisteredUser,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="guest_profiles"
-    )
-
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.id = next(generator)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"GuestUser ({self.uuid})"
-
 #演讲模型
 class Presentation(models.Model):
     """
@@ -72,7 +50,12 @@ class Presentation(models.Model):
     """
     id = models.BigIntegerField(primary_key=True, editable=False)  # 雪花主键
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # 外部引用安全ID
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
 
     title = models.CharField(max_length=200, help_text="演讲标题")
     description = models.TextField(blank=True, help_text="演讲简要描述，可选")
@@ -100,13 +83,53 @@ class Presentation(models.Model):
     def __str__(self):
         return f"Presentation: {self.title} by {self.presenter.username}"
 
+# 演讲中包含的多媒体文件
+class MediaFile(models.Model):
+
+    id = models.BigIntegerField(primary_key=True, editable=False)
+
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
+
+    class MediaType(models.TextChoices):
+        PPT = 'ppt', 'PPT'
+        VIDEO = 'video', 'Video'
+        AUDIO = 'audio', 'Audio'
+        IMAGE = 'image', 'Image'
+        PDF = 'pdf', 'PDF'
+        OTHER = 'other', 'Other'
+
+    presentation = models.ForeignKey('Presentation', on_delete=models.CASCADE, related_name='media_files')
+    file = models.FileField(upload_to='media_files/')
+    type = models.CharField(max_length=10, choices=MediaType.choices)
+    title = models.CharField(max_length=255, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    order = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = next(generator)
+        super().save(*args, **kwargs)
+
+    def file_url(self):
+        return self.file.url
+
 
 #题目模型
 class PopQuiz(models.Model):
 
     id = models.BigIntegerField(primary_key=True, editable=False)
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -160,6 +183,13 @@ class PopQuiz(models.Model):
 
 class Answer(models.Model):
     id = models.BigIntegerField(primary_key=True, editable=False)
+
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
 
     user = models.ForeignKey(
         RegisteredUser,

@@ -1,22 +1,48 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+
+const isFocused = ref(false)
+
+const clearSearch = () => {
+  searchQuery.value = ''
+}
+
+interface presentation {
+  uuid: string
+  title: string
+  description: string
+  updated_at: string  // 假设后端返回的是 ISO 格式时间字符串
+}
+
+// 日期格式化函数
+const formatDate = (isoString: string) => {
+  const date = new Date(isoString)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  return `编辑于 ${year}年${month}月${day}日`
+}
 
 const searchQuery = ref('')
-//统计列表中 presentation 的个数
-const presentationCount = computed(() => filteredPresentations.value.length)
 
-const presentations = ref([
-  { id: 1, title: '如何高效演讲', description: '关于演讲技巧的分享' },
-  { id: 2, title: 'AI 与教育', description: '探讨AI在课堂中的应用' },
-  { id: 3, title: 'Vue3 项目实战', description: '介绍如何使用 Vue3 构建项目' },
-])
-
+const presentations = ref<presentation[]>([])
 const filteredPresentations = computed(() =>
   presentations.value.filter((p) =>
     p.title.includes(searchQuery.value)
   )
 )
+const presentationCount = computed(() => filteredPresentations.value.length)
 
+// 页面加载时从后端拉取数据
+onMounted(async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/presentations/')
+    presentations.value = res.data
+  } catch (err) {
+    console.error('获取演讲列表失败:', err)
+  }
+})
 
 </script>
 
@@ -34,9 +60,23 @@ const filteredPresentations = computed(() =>
       </div>
 
       <!-- 搜索框 -->
-      <div class="search-box">
-        <input type="text" v-model="searchQuery" placeholder="搜索演讲..." />
-      </div>
+      <div class="search-box" :class="{ focused: isFocused }">
+  <img src="@/assets/search.svg" class="search-icon-left" alt="搜索" />
+  <input
+    type="text"
+    v-model="searchQuery"
+    placeholder="搜索演讲..."
+    @focus="isFocused = true"
+    @blur="isFocused = false"
+  />
+  <img
+    v-if="searchQuery"
+    src="@/assets/x.svg"
+    class="search-icon-clear"
+    alt="清除"
+    @click="clearSearch"
+  />
+</div>
     </div>
 
     <!--统计列表中元素个数-->
@@ -47,13 +87,21 @@ const filteredPresentations = computed(() =>
     <!-- 列表区域 -->
     <div class="presentation-list">
       <div
-        class="presentation-card"
-        v-for="item in filteredPresentations"
-        :key="item.id"
-      >
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.description }}</p>
-      </div>
+  class="presentation-wrapper"
+  v-for="item in filteredPresentations"
+  :key="item.uuid"
+>
+  <div class="presentation-card"></div>
+  <div class="presentation-meta">
+    <h3 class="presentation-title">{{ item.title }}</h3>
+    <p class="presentation-time">{{ formatDate(item.updated_at) }}</p>
+  </div>
+        <img
+      src="@/assets/dots-horizontal.svg"
+      alt="更多操作"
+      class="dot-icon"
+    />
+</div>
     </div>
   </div>
 </template>
@@ -106,31 +154,81 @@ const filteredPresentations = computed(() =>
 }
 
 .btn-primary {
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.83);
   color: white;
 }
 
+.btn-primary:hover {
+  background-color: rgb(0, 0, 0);
+}
+
 .btn-outline {
-  background-color: #f2f2f2; /* 淡灰色背景 */
+  background-color: rgba(205, 205, 205, 0.33); /* 淡灰色背景 */
   color: black;
   border: none; /* 去掉边框 */
 }
 
-/* 搜索框容器 */
-.search-box {
-  margin-left: auto; /* 将搜索框推向右侧 */
+.btn-outline:hover {
+  background-color: rgba(205, 205, 205, 0.75); /* 淡灰色背景 */
 }
 
-/* 搜索框 */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f2f2f2;
+  border-radius: 10px;
+  height: 42px;
+  width: 400px;
+  padding: 0 2.5rem;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+  margin-left: auto;
+}
+
 .search-box input {
-  padding: 0.4rem 0.75rem;
+  flex: 1;
   font-size: 14px;
   border: none;
-  border-radius: 10px; /* 圆角矩形（胶囊形） */
-  background-color: #f2f2f2; /* 淡灰色背景 */
+  background: transparent;
   outline: none;
-  width: 400px; /* 可选：你可以根据需要调整宽度 */
-  height: 42px;
+  height: 100%;
+  color: #333;
+  padding: 0;
+  caret-color: #333;
+}
+
+.search-icon-left {
+  position: absolute;
+  left: 0.75rem;
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+}
+
+.search-icon-clear {
+  position: absolute;
+  right: 0.75rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.search-icon-clear:hover {
+  opacity: 1;
+}
+
+/* 聚焦状态样式 */
+.search-box.focused {
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+  border: 1px solid #004080;
+}
+
+/* 聚焦时隐藏 placeholder */
+.search-box.focused input::placeholder {
+  color: transparent;
 }
 
 /*列表元素个数*/
@@ -144,21 +242,69 @@ const filteredPresentations = computed(() =>
 /* 演讲卡片列表布局 */
 .presentation-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.presentation-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 /* 每个演讲卡片 */
 .presentation-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: #fafafa;
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
+  min-height: 180px;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  background-color: white;
+  transition: box-shadow 0.2s ease;
+  flex: 1;
+}
+
+.presentation-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.presentation-meta {
+  text-align: left;
+  padding: 0 0.25rem;
+}
+
+
+.presentation-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0;
+}
+
+.presentation-time {
+  font-size: 0.9rem;
+  color: #777;
+  margin: 0.2rem 0 0;
 }
 
 .presentation-card h3 {
   margin: 0 0 0.5rem 0;
   font-size: 16px;
 }
+
+.dot-icon {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 1.5rem;
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+}
+
+/* 父元素悬停时图标显现 */
+.presentation-wrapper:hover .dot-icon {
+  opacity: 0.7;
+}
+
 </style>

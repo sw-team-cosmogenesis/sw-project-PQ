@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
-import axios from 'axios'
+import { AxiosError } from 'axios'
+import { RouterLink, useRouter } from 'vue-router'
 import eye from '@/assets/eye.svg'
 import eyeSlash from '@/assets/eye-slash.svg'
-import type { AxiosError } from 'axios'
+import axios from 'axios'
 
-const router = useRouter()
+const email = ref('')
+const emailError = ref(false)
+
+const password = ref('')
+const confirmPassword = ref('')
+const passwordError = ref(false)
 
 const showPassword = ref(false)
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
+const showConfirmPassword = ref(false)
 
-// 表单字段
-const email = ref('')
-const password = ref('')
-const emailError = ref(false)
+const router = useRouter()
+const error = ref('')
 const loginError = ref('')
 
-// 校验邮箱格式
 const validateEmailFormat = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
@@ -29,83 +29,103 @@ const onEmailInput = () => {
   emailError.value = !validateEmailFormat(email.value)
 }
 
-// 登录方法
-const login = async () => {
-  loginError.value = ''
+const onConfirmPasswordInput = () => {
+  passwordError.value = confirmPassword.value !== password.value
+}
 
-  if (!validateEmailFormat(email.value)) {
-    emailError.value = true
+const register = async () => {
+  if (password.value !== confirmPassword.value) {
+    error.value = '两次密码不一致'
     return
   }
 
-try {
-  const response = await axios.post('http://localhost:8000/api/login/', {
-    email: email.value,
-    password: password.value,
-  })
-
-  const token = response.data.token
-  localStorage.setItem('token', token)
-  router.push('/dashboard')
-} catch (err: unknown) {
-  const error = err as AxiosError<{ detail?: string }>
-  loginError.value = error.response?.data?.detail || '登录失败，请检查邮箱和密码'
-}
+  try {
+    await axios.post('http://localhost:8000/api/register/', {
+      email: email.value,
+      password: password.value
+    })
+    router.push('/login')  // 注册成功跳转登录页
+  } catch (err: unknown) {
+    const error = err as AxiosError<{ detail?: string }>
+    loginError.value = error.response?.data?.detail || '注册失败'
+  }
 }
 </script>
 
-
 <template>
-  <div class="login-page">
-    <!-- 欢迎文字容器，与登录框并列 -->
-    <div class="login-page-header">
-      <p class="welcome-text">_(:з」∠) 欢迎回来  ( ° ∀ ° )ﾉ</p>
+  <div class="register-page">
+    <div class="register-page-header">
+      <p class="welcome-text">注册 PopQuiz 账户</p>
     </div>
 
-    <div class="login-box">
-      <h2 class="login-title">登录你的 PopQuiz 账户</h2>
+    <div class="register-box">
+      <h2 class="register-title">创建你的 PopQuiz 账户</h2>
 
+      <!-- 邮箱 -->
       <div class="field-group">
-    <label class="input-label">邮箱：</label>
-    <input
-      type="email"
-      class="input-field"
-      v-model="email"
-      @input="onEmailInput"
-      :class="{ 'input-error': emailError }"
-    />
-    <p class="error-text" :class="{ visible: emailError }">邮箱格式有误</p>
-  </div>
+        <label class="input-label">邮箱：</label>
+        <input
+          type="email"
+          class="input-field"
+          v-model="email"
+          @input="onEmailInput"
+          :class="{ 'input-error': emailError }"
+        />
+        <p class="error-text" :class="{ visible: emailError }">邮箱格式有误</p>
+      </div>
 
+      <!-- 密码 -->
       <div class="field-group password-group">
         <label class="input-label">密码：</label>
         <div class="password-wrapper">
           <input
             :type="showPassword ? 'text' : 'password'"
             class="input-field"
-            v-model = password
+            v-model="password"
+            @input="onConfirmPasswordInput"
+            :class="{ 'input-error': passwordError }"
           />
           <img
             :src="showPassword ? eye : eyeSlash"
             class="eye-icon"
             alt="切换密码可见性"
-            @click="togglePasswordVisibility"
+            @click="() => (showPassword = !showPassword)"
           />
         </div>
       </div>
-      <p v-if="loginError" class="login-error">{{ loginError }}</p>
-      <button class="login-button" @click="login">登录</button>
-      <p class="forgot-password">忘记密码?</p>
+
+      <!-- 确认密码 -->
+      <div class="field-group password-group">
+        <label class="input-label">确认密码：</label>
+        <div class="password-wrapper">
+          <input
+            :type="showConfirmPassword ? 'text' : 'password'"
+            class="input-field"
+            v-model="confirmPassword"
+            @input="onConfirmPasswordInput"
+            :class="{ 'input-error': passwordError }"
+          />
+          <img
+            :src="showConfirmPassword ? eye : eyeSlash"
+            class="eye-icon"
+            alt="切换密码可见性"
+            @click="() => (showConfirmPassword = !showConfirmPassword)"
+          />
+        </div>
+        <p class="error-text" :class="{ visible: passwordError }">两次密码不一致</p>
+      </div>
+
+      <button class="register-button" @click = "register">注册</button>
+      <p class="back-login">
+        已有账户？
+        <RouterLink to="/login" class="register-link">返回登录</RouterLink>
+      </p>
     </div>
-    <p class="register-text">
-    新用户？
-  <router-link to="/register" class="register-link">点击注册</router-link>
-</p>
   </div>
 </template>
 
 <style scoped>
-.login-page {
+.register-page {
   height: 80vh;
   padding-right: 10rem;
   padding-bottom: 10rem;
@@ -113,11 +133,10 @@ try {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem; /* 控制欢迎文字与登录框之间的距离 */
+  gap: 1rem;
 }
 
-/* 欢迎文字容器 */
-.login-page-header {
+.register-page-header {
   text-align: center;
 }
 
@@ -128,8 +147,7 @@ try {
   margin-bottom: 1rem;
 }
 
-/* 登录框样式 */
-.login-box {
+.register-box {
   background-color: white;
   padding: 2.5rem 2rem;
   border-radius: 12px;
@@ -141,7 +159,7 @@ try {
   gap: 1.25rem;
 }
 
-.login-title {
+.register-title {
   font-size: 1.5rem;
   font-weight: bold;
   color: black;
@@ -184,9 +202,9 @@ try {
 
 .error-text {
   font-size: 0.85rem;
-  height: 0.5rem; /* 固定高度，预留空间 */
+  height: 0.5rem;
   margin-top: 0.25rem;
-  color: transparent; /* 默认不可见 */
+  color: transparent;
   transition: color 0.3s ease;
 }
 
@@ -218,7 +236,7 @@ try {
   opacity: 1;
 }
 
-.login-button {
+.register-button {
   margin-top: 1rem;
   background-color: #333333;
   color: white;
@@ -230,37 +248,15 @@ try {
   transition: background-color 0.2s ease;
 }
 
-.login-button:hover {
+.register-button:hover {
   background-color: black;
 }
 
-.forgot-password {
+.back-login {
   text-align: center;
   font-size: 0.9rem;
   color: #555;
-  cursor: pointer;
   margin-top: -0.5rem;
-  text-decoration: none; /* 默认无下划线 */
-}
-
-.forgot-password:hover {
-  text-decoration: underline; /* 鼠标悬停时显示下划线 */
-}
-
-.login-error {
-  color: red;
-  font-size: 0.9rem;
-  text-align: center;
-  margin-top: -1rem;
-  margin-bottom: -1.5rem;
-}
-
-
-.register-text {
-  text-align: center;
-  font-size: 0.9rem;
-  color: #555;
-  margin-top: 0.75rem;
 }
 
 .register-link {
@@ -273,6 +269,4 @@ try {
 .register-link:hover {
   text-decoration: underline;
 }
-
-
 </style>
