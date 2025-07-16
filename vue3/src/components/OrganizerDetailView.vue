@@ -3,7 +3,7 @@
 </script>
 
 <template>
-
+组织者视图
 </template>
 
 <style scoped>

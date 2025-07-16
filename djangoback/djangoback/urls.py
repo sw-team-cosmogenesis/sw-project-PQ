@@ -20,6 +20,12 @@ from rest_framework.routers import DefaultRouter
 
 from .views import PopQuizViewSet, RegisterView, LoginView, PresentationListView
 
+from django.urls import path
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,  # 登录（获取access + refresh）
+    TokenRefreshView,     # 刷新access
+)
+
 router = DefaultRouter()
 router.register(r'popquiz', PopQuizViewSet, basename='popquiz')
 urlpatterns = [
@@ -28,4 +34,5 @@ urlpatterns = [
     path('api/register/', RegisterView.as_view(), name='register'),
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/presentations/', PresentationListView.as_view(), name='presentations'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

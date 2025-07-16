@@ -1,15 +1,17 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
 
-from .models import PopQuiz, RegisteredUser, Presentation
+from .models import PopQuiz, RegisteredUser, Presentation, PresentationParticipant
 from .serializers import PopQuizSerializer, PresentationSerializer
 
 
-# 只读视图
 class PopQuizViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PopQuiz.objects.all()
     serializer_class = PopQuizSerializer
@@ -20,6 +22,24 @@ class PresentationListView(APIView):
         serializer = PresentationSerializer(presentations, many=True)
         return Response(serializer.data)
 
+
+@api_view(['GET'])
+def presentation_detail(request, uuid):
+    presentation = get_object_or_404(Presentation, uuid=uuid)
+    # 查询用户身份
+    try:
+        participant = PresentationParticipant.objects.get(user=request.user, presentation=presentation)
+        role = participant.role
+    except PresentationParticipant.DoesNotExist:
+        role = 'viewer' if presentation.is_public else None
+
+    # 返回不同身份的数据
+    return Response({
+        'presentation': PresentationSerializer(presentation).data,
+        'role': role
+    })
+
+@permission_classes([AllowAny])
 class RegisterView(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -35,6 +55,7 @@ class RegisterView(APIView):
         )
         return Response({"detail": "注册成功"}, status=status.HTTP_201_CREATED)
 
+@permission_classes([AllowAny])
 class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
