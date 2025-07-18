@@ -3,8 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import AudienceDetailView from "@/components/AudienceDetailView.vue";
-import PresenterDetailView from "@/components/PresenterDetailView.vue";
 import OrganizerDetailView from "@/components/OrganizerDetailView.vue";
+import EditView from "@/views/EditView.vue";
 
 interface Presentation{
   title:string,
@@ -35,14 +35,14 @@ onMounted(async () => {
     <h1>{{ presentation.title }}</h1>
     <p>{{ presentation.description }}</p>
 
-    <div v-if="userRole === 'viewer'">
+    <div v-if="userRole === 'audience'">
       <!-- 展示观众的作答与反馈 -->
       <AudienceDetailView :presentation="presentation" />
     </div>
 
     <div v-else-if="userRole === 'presenter'">
       <!-- 上传资源 & 查看观众反馈 -->
-      <PresenterDetailView :presentation="presentation" />
+      <EditView :presentation="presentation" />
     </div>
 
     <div v-else-if="userRole === 'organizer'">

@@ -9,6 +9,7 @@ const router = createRouter({
     {
       path: '/quiz',
       name: 'quiz',
+      meta: { requiresAuth: true },
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
@@ -18,12 +19,14 @@ const router = createRouter({
     {
       path: '/presenter',
       name: 'presenter',
+      meta: { requiresAuth: true },
       component: () => import('../views/PresenterPage.vue'),
     },
 
     {
       path: '/presenter',
       name: 'presenter',
+      meta: { requiresAuth: true },
       component: PresenterPage,
       children: [
         {path: '', redirect: '/presenter/home'},  // 默认跳转
@@ -32,20 +35,23 @@ const router = createRouter({
       ],
     },
     {
-      path: '/presentations/:uuid',
-      name: 'PresentationDetail',
-      component: () => import('../components/PresenterDetailView.vue'),
+      path: '/presentation/:uuid',
+      name: 'EditView',
+      meta: { requiresAuth: true,},
+      component: () => import('../views/EditView.vue'),
       props: true,
     },
     {
       path: '/login',
       name: 'login',
+      meta: { hideNavbar: true },
       component: () => import('../views/LoginPage.vue'),
     },
 
     {
       path: '/register',
       name: 'Register',
+      meta: { hideNavbar: true },
       component: () => import('../views/RegisterPage.vue') // 替换为你的注册组件路径
     }
   ],

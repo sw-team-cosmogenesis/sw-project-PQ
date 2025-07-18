@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import PopQuizViewSet, RegisterView, LoginView, PresentationListView
+from .views import PopQuizViewSet, RegisterView, LoginView, PresentationListView, UploadMediaFileView
+from django.conf import settings
+from django.conf.urls.static import static
 
 from django.urls import path
 from rest_framework_simplejwt.views import (
@@ -35,4 +37,7 @@ urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/presentations/', PresentationListView.as_view(), name='presentations'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/upload-media/', UploadMediaFileView.as_view(), name='upload_media'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

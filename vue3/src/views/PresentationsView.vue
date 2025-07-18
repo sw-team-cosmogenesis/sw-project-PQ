@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import {RouterLink} from 'vue-router'
+import {RouterLink, useRouter} from 'vue-router'
 import api from '@/utils/api.ts'
-const isFocused = ref(false)
 
+const isFocused = ref(false)
+const router = useRouter()
 const clearSearch = () => {
   searchQuery.value = ''
 }
@@ -44,6 +45,23 @@ onMounted(async () => {
   }
 })
 
+const createNewPresentation = async () => {
+  try {
+    const res = await api.post('http://localhost:8000/api/presentations/', {
+      title: '未命名',
+      description: '',
+      scheduled_time: null,
+      duration_minutes: null,
+      is_active: true
+    })
+    const newUuid = res.data.uuid
+    // 跳转到演讲者详情页面（你可以按需修改路径）
+    router.push(`/presenter/presentation/${newUuid}`)
+  } catch (err) {
+    console.error('创建演讲失败:', err)
+  }
+}
+
 </script>
 
 <template>
@@ -54,7 +72,7 @@ onMounted(async () => {
     <div class="toolbar">
       <div class="left-controls">
         <div class="button-group">
-          <button class="btn btn-primary">新建演讲</button>
+          <button class="btn btn-primary" @click="createNewPresentation">新建演讲</button>
           <button class="btn btn-outline">临时占位</button>
         </div>
       </div>

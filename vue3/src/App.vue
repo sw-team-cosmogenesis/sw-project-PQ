@@ -5,13 +5,12 @@ import TopNavBar from "@/components/TopNavBar.vue";
 
 const route = useRoute()
 // 在登陆和注册页面隐藏顶部栏
-const hideNavRoutes = ['/login', '/register']
 
 </script>
 
 <template class="background">
   <div>
-    <TopNavBar v-if="!hideNavRoutes.includes(route.path)"/>
+    <TopNavBar v-if="!route.meta.hideNavbar"/>
     <main class="main">
       <router-view />
     </main>
