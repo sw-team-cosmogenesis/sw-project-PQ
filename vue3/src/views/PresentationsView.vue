@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import {ref, computed, onMounted} from 'vue'
+import {RouterLink, useRouter} from 'vue-router'
+import api from '@/utils/api.ts'
 
 const isFocused = ref(false)
-
+const router = useRouter()
 const clearSearch = () => {
   searchQuery.value = ''
 }
@@ -37,71 +38,93 @@ const presentationCount = computed(() => filteredPresentations.value.length)
 // 页面加载时从后端拉取数据
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8000/api/presentations/')
+    const res = await api.get('http://localhost:8000/api/presentations/')
     presentations.value = res.data
   } catch (err) {
     console.error('获取演讲列表失败:', err)
   }
 })
 
+const createNewPresentation = async () => {
+  try {
+    const res = await api.post('http://localhost:8000/api/presentations/', {
+      title: '未命名',
+      description: '',
+      scheduled_time: null,
+      duration_minutes: null,
+      is_active: true
+    })
+    const newUuid = res.data.uuid
+    // 跳转到演讲者详情页面（你可以按需修改路径）
+    router.push(`/presenter/presentation/${newUuid}`)
+  } catch (err) {
+    console.error('创建演讲失败:', err)
+  }
+}
+
 </script>
 
 <template>
-    <div class="presentation-container">
+  <div class="presentation-container">
 
-      <h1 class="page-title">我的演讲</h1>
+    <h1 class="page-title">我的演讲</h1>
 
     <div class="toolbar">
       <div class="left-controls">
         <div class="button-group">
-          <button class="btn btn-primary">新建演讲</button>
+          <button class="btn btn-primary" @click="createNewPresentation">新建演讲</button>
           <button class="btn btn-outline">临时占位</button>
         </div>
       </div>
 
       <!-- 搜索框 -->
       <div class="search-box" :class="{ focused: isFocused }">
-  <img src="@/assets/search.svg" class="search-icon-left" alt="搜索" />
-  <input
-    type="text"
-    v-model="searchQuery"
-    placeholder="搜索演讲..."
-    @focus="isFocused = true"
-    @blur="isFocused = false"
-  />
-  <img
-    v-if="searchQuery"
-    src="@/assets/x.svg"
-    class="search-icon-clear"
-    alt="清除"
-    @click="clearSearch"
-  />
-</div>
+        <img src="@/assets/search.svg" class="search-icon-left" alt="搜索"/>
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="搜索演讲..."
+          @focus="isFocused = true"
+          @blur="isFocused = false"
+        />
+        <img
+          v-if="searchQuery"
+          src="@/assets/x.svg"
+          class="search-icon-clear"
+          alt="清除"
+          @click="clearSearch"
+        />
+      </div>
     </div>
 
     <!--统计列表中元素个数-->
     <div class="presentation-count">
-    演讲（{{ presentationCount }}）
+      演讲（{{ presentationCount }}）
     </div>
 
     <!-- 列表区域 -->
     <div class="presentation-list">
       <div
-  class="presentation-wrapper"
-  v-for="item in filteredPresentations"
-  :key="item.uuid"
->
-  <div class="presentation-card"></div>
-  <div class="presentation-meta">
-    <h3 class="presentation-title">{{ item.title }}</h3>
-    <p class="presentation-time">{{ formatDate(item.updated_at) }}</p>
-  </div>
+        class="presentation-wrapper"
+        v-for="item in filteredPresentations"
+        :key="item.uuid"
+      >
+        <router-link
+          :to="`/presentation/${item.uuid}`"
+          class="presentation-link"
+        >
+          <div class="presentation-card"></div>
+          <div class="presentation-meta">
+            <h3 class="presentation-title">{{ item.title }}</h3>
+            <p class="presentation-time">{{ formatDate(item.updated_at) }}</p>
+          </div>
+        </router-link>
         <img
-      src="@/assets/dots-horizontal.svg"
-      alt="更多操作"
-      class="dot-icon"
-    />
-</div>
+          src="@/assets/dots-horizontal.svg"
+          alt="更多操作"
+          class="dot-icon"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -307,4 +330,15 @@ onMounted(async () => {
   opacity: 0.7;
 }
 
+.presentation-link {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.presentation-link:hover {
+  background-color: transparent; /* 禁止悬停背景 */
+}
 </style>

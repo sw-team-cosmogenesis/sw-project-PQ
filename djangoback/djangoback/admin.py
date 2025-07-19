@@ -5,3 +5,6 @@ admin.site.register(RegisteredUser)
 admin.site.register(PopQuiz)
 admin.site.register(Presentation)
 admin.site.register(MediaFile)
+admin.site.register(PresentationParticipant)
+
+

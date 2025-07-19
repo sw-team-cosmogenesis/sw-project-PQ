@@ -5,7 +5,7 @@ import PresentationIcon from "@/assets/presentation-outline.svg";
 
 const navItems = [
   { path: '/presenter/home', label: '主 页', icon: HomeIcon },
-  { path: '/presenter/presentation', label: '我的演讲', icon: PresentationIcon },
+  { path: '/presenter/presentations', label: '我的演讲', icon: PresentationIcon },
 ]
 </script>
 

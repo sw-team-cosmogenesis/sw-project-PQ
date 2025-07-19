@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
-import axios from 'axios'
+import {ref} from 'vue'
+import {useRouter, RouterLink} from 'vue-router'
+import axios, {type AxiosError} from 'axios'
 import eye from '@/assets/eye.svg'
 import eyeSlash from '@/assets/eye-slash.svg'
-import type { AxiosError } from 'axios'
 
 const router = useRouter()
 
+// 表单状态
+const email = ref('')
+const password = ref('')
 const showPassword = ref(false)
+const emailError = ref(false)
+const loginError = ref('')
+
+// 切换密码显示
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-// 表单字段
-const email = ref('')
-const password = ref('')
-const emailError = ref(false)
-const loginError = ref('')
-
-// 校验邮箱格式
+// 邮箱格式校验
 const validateEmailFormat = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
@@ -29,7 +29,7 @@ const onEmailInput = () => {
   emailError.value = !validateEmailFormat(email.value)
 }
 
-// 登录方法
+// 登录逻辑
 const login = async () => {
   loginError.value = ''
 
@@ -38,19 +38,24 @@ const login = async () => {
     return
   }
 
-try {
-  const response = await axios.post('http://localhost:8000/api/login/', {
-    email: email.value,
-    password: password.value,
-  })
+  try {
+    const res = await axios.post('http://localhost:8000/api/login/', {
+      email: email.value,
+      password: password.value,
+    })
 
-  const token = response.data.token
-  localStorage.setItem('token', token)
-  router.push('/dashboard')
-} catch (err: unknown) {
-  const error = err as AxiosError<{ detail?: string }>
-  loginError.value = error.response?.data?.detail || '登录失败，请检查邮箱和密码'
-}
+    const {access, refresh} = res.data
+
+    // 存入 localStorage
+    localStorage.setItem('access_token', access)
+    localStorage.setItem('refresh_token', refresh)
+
+    // 跳转至主界面
+    router.push('/presenter/presentations/')
+  } catch (err: unknown) {
+    const error = err as AxiosError<{ detail?: string }>
+    loginError.value = error.response?.data?.detail || '登录失败，请检查邮箱和密码'
+  }
 }
 </script>
 
@@ -59,23 +64,23 @@ try {
   <div class="login-page">
     <!-- 欢迎文字容器，与登录框并列 -->
     <div class="login-page-header">
-      <p class="welcome-text">_(:з」∠) 欢迎回来  ( ° ∀ ° )ﾉ</p>
+      <p class="welcome-text">_(:з」∠) 欢迎回来 ( ° ∀ ° )ﾉ</p>
     </div>
 
     <div class="login-box">
       <h2 class="login-title">登录你的 PopQuiz 账户</h2>
 
       <div class="field-group">
-    <label class="input-label">邮箱：</label>
-    <input
-      type="email"
-      class="input-field"
-      v-model="email"
-      @input="onEmailInput"
-      :class="{ 'input-error': emailError }"
-    />
-    <p class="error-text" :class="{ visible: emailError }">邮箱格式有误</p>
-  </div>
+        <label class="input-label">邮箱：</label>
+        <input
+          type="email"
+          class="input-field"
+          v-model="email"
+          @input="onEmailInput"
+          :class="{ 'input-error': emailError }"
+        />
+        <p class="error-text" :class="{ visible: emailError }">邮箱格式有误</p>
+      </div>
 
       <div class="field-group password-group">
         <label class="input-label">密码：</label>
@@ -83,7 +88,7 @@ try {
           <input
             :type="showPassword ? 'text' : 'password'"
             class="input-field"
-            v-model = password
+            v-model=password
           />
           <img
             :src="showPassword ? eye : eyeSlash"
@@ -98,9 +103,9 @@ try {
       <p class="forgot-password">忘记密码?</p>
     </div>
     <p class="register-text">
-    新用户？
-  <router-link to="/register" class="register-link">点击注册</router-link>
-</p>
+      新用户？
+      <router-link to="/register" class="register-link">点击注册</router-link>
+    </p>
   </div>
 </template>
 
@@ -273,6 +278,4 @@ try {
 .register-link:hover {
   text-decoration: underline;
 }
-
-
 </style>

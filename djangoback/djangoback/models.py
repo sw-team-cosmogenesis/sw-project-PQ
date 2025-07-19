@@ -20,25 +20,13 @@ class RegisteredUser(AbstractUser):
         help_text="自动生成的全局唯一 UUID"
     )
 
-    ROLE_CHOICES = (
-        ('audience', 'Audience'),
-        ('speaker', 'Speaker'),
-    )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='audience')
-
     def save(self, *args, **kwargs):
         if not self.id:
             self.id = next(generator)
         super().save(*args, **kwargs)
 
-    def is_speaker(self):
-        return self.role == 'speaker'
-
-    def is_audience(self):
-        return self.role == 'audience'
-
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        return f"{self.username} "
 
 
 #演讲模型
@@ -58,6 +46,7 @@ class Presentation(models.Model):
     )
 
     title = models.CharField(max_length=200, help_text="演讲标题")
+
     description = models.TextField(blank=True, help_text="演讲简要描述，可选")
 
     presenter = models.ForeignKey(
@@ -83,6 +72,42 @@ class Presentation(models.Model):
     def __str__(self):
         return f"Presentation: {self.title} by {self.presenter.username}"
 
+
+class PresentationParticipant(models.Model):
+    ROLE_CHOICES = (
+        ('presenter', '演讲者'),
+        ('audience', '观众'),
+        ('organizer', '组织者'),
+    )
+
+    id = models.BigIntegerField(primary_key=True, editable=False)
+
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
+
+    user = models.ForeignKey('RegisteredUser', on_delete=models.CASCADE, related_name='presentation_roles')
+    presentation = models.ForeignKey('Presentation', on_delete=models.CASCADE, related_name='participants')
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'presentation')  # 每个用户在一个演讲中只有一个角色
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = next(generator)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} as {self.role} in {self.presentation.title}"
+
+
 # 演讲中包含的多媒体文件
 class MediaFile(models.Model):
 
@@ -105,7 +130,10 @@ class MediaFile(models.Model):
 
     presentation = models.ForeignKey('Presentation', on_delete=models.CASCADE, related_name='media_files')
     file = models.FileField(upload_to='media_files/')
+
+    # ↓此处留有一个代码编辑器报错，但在最新版的 django 中允许这个用法，所以忽略↓
     type = models.CharField(max_length=10, choices=MediaType.choices)
+
     title = models.CharField(max_length=255, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     order = models.IntegerField(default=0)
