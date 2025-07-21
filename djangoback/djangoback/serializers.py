@@ -10,10 +10,28 @@ class PopQuizSerializer(serializers.ModelSerializer):
 class PresentationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Presentation
-        fields = '__all__'
-        read_only_fields = ('id', 'uuid', 'presenter', 'created_at', 'updated_at')
+        fields = [
+            'uuid',
+            'title',
+            'description',
+            'presenter',
+            'scheduled_time',
+            'duration_minutes',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ('uuid', 'presenter', 'created_at', 'updated_at')
 
 class MediaFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaFile
-        fields = ['id', 'uuid', 'file', 'type', 'title', 'uploaded_at', 'order']
+        fields = [
+            'uuid',
+            'presentation',
+            'file',
+            'title',
+            'uploaded_at',
+            'order'
+        ]
+        read_only_fields = ['uuid', 'presentation', 'uploaded_at']

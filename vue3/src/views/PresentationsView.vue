@@ -22,7 +22,7 @@ const formatDate = (isoString: string) => {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
   const day = date.getDate()
-  return `编辑于 ${year}年${month}月${day}日`
+  return `最后编辑于 ${year}年${month}月${day}日`
 }
 
 const searchQuery = ref('')
@@ -55,16 +55,49 @@ const createNewPresentation = async () => {
       is_active: true
     })
     const newUuid = res.data.uuid
-    // 跳转到演讲者详情页面（你可以按需修改路径）
-    router.push(`/presenter/presentation/${newUuid}`)
+    console.log('新建演讲 UUID:', newUuid)
+    // 跳转到演讲者详情页面
+    router.push(`/presentation/${newUuid}/edit`)
   } catch (err) {
     console.error('创建演讲失败:', err)
+  }
+}
+
+// 演讲菜单
+import DropdownMenu from '@/components/PresentationDropdownMenu.vue'
+
+const menuVisible = ref(false)
+const menuX = ref(0)
+const menuY = ref(0)
+const selectedItem = ref<presentation | null>(null)
+
+const openMenu = (event: MouseEvent, item: presentation) => {
+  event.preventDefault()
+  selectedItem.value = item
+  menuX.value = event.clientX
+  menuY.value = event.clientY
+  menuVisible.value = true
+}
+
+const closeMenu = () => {
+  menuVisible.value = false
+}
+
+const deletePresentation = async () => {
+  if (!selectedItem.value) return
+  try {
+    await api.delete(`http://localhost:8000/api/presentations/${selectedItem.value.uuid}/`)
+    presentations.value = presentations.value.filter(p => p.uuid !== selectedItem.value?.uuid)
+    closeMenu()
+  } catch (err) {
+    console.error('删除失败:', err)
   }
 }
 
 </script>
 
 <template>
+
   <div class="presentation-container">
 
     <h1 class="page-title">我的演讲</h1>
@@ -109,24 +142,35 @@ const createNewPresentation = async () => {
         v-for="item in filteredPresentations"
         :key="item.uuid"
       >
-        <router-link
-          :to="`/presentation/${item.uuid}`"
-          class="presentation-link"
-        >
-          <div class="presentation-card"></div>
-          <div class="presentation-meta">
-            <h3 class="presentation-title">{{ item.title }}</h3>
-            <p class="presentation-time">{{ formatDate(item.updated_at) }}</p>
-          </div>
-        </router-link>
+          <router-link
+            :to="`/presentation/${item.uuid}/edit`"
+            class="presentation-link"
+          >
+        <div class="presentation-card"></div>
+          </router-link>
+        <div class="presentation-meta">
+
+          <h3 class="presentation-title">{{ item.title }}</h3>
+          <p class="presentation-time">{{ formatDate(item.updated_at) }}</p>
+        </div>
         <img
           src="@/assets/dots-horizontal.svg"
           alt="更多操作"
           class="dot-icon"
+          @click="(e) => openMenu(e, item)"
         />
       </div>
     </div>
   </div>
+
+  <!--下拉菜单调用-->
+  <DropdownMenu
+    v-if="menuVisible"
+    :x="menuX"
+    :y="menuY"
+    @close="closeMenu"
+    @delete="deletePresentation"
+  />
 </template>
 
 <style scoped>
