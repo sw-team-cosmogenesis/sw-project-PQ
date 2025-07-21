@@ -15,29 +15,33 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include
 from rest_framework.routers import DefaultRouter
 
-from .views import PopQuizViewSet, RegisterView, LoginView, PresentationListView, UploadMediaFileView
+from .views import PopQuizViewSet, RegisterView, LoginView, PresentationViewSet, MediaFileViewSet
 from django.conf import settings
 from django.conf.urls.static import static
 
 from django.urls import path
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,  # 登录（获取access + refresh）
     TokenRefreshView,     # 刷新access
 )
 
+
+# ViewSet 视图注册如下
 router = DefaultRouter()
 router.register(r'popquiz', PopQuizViewSet, basename='popquiz')
+router.register(r'presentations', PresentationViewSet, basename='presentations')
+router.register(r'upload-media', MediaFileViewSet, basename='media_upload')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    # APIView 视图注册如下
     path('api/register/', RegisterView.as_view(), name='register'),
     path('api/login/', LoginView.as_view(), name='login'),
-    path('api/presentations/', PresentationListView.as_view(), name='presentations'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/upload-media/', UploadMediaFileView.as_view(), name='upload_media'),
 ]
 
+# 媒体文件路径
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -51,7 +51,7 @@ const login = async () => {
     localStorage.setItem('refresh_token', refresh)
 
     // 跳转至主界面
-    router.push('/presenter/presentations/')
+    router.push('/presentations')
   } catch (err: unknown) {
     const error = err as AxiosError<{ detail?: string }>
     loginError.value = error.response?.data?.detail || '登录失败，请检查邮箱和密码'
