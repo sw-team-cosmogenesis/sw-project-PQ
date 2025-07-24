@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import include
 from rest_framework.routers import DefaultRouter
 
-from .views import PopQuizViewSet, RegisterView, LoginView, PresentationViewSet, MediaFileViewSet
+from .views import PopQuizViewSet, RegisterView, LoginView, PresentationViewSet, MediaFileViewSet, GenerateQuizAPIView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/register/', RegisterView.as_view(), name='register'),
     path('api/login/', LoginView.as_view(), name='login'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path("api/generate-quiz/", GenerateQuizAPIView.as_view(), name="generate-quiz"),
 ]
 
 # 媒体文件路径
