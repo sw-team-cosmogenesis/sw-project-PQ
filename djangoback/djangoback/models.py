@@ -146,6 +146,68 @@ class MediaFile(models.Model):
     def file_url(self):
         return self.file.url
 
+class Image(models.Model):
+    # 雪花ID主键
+    id = models.BigIntegerField(
+        primary_key=True,
+        editable=False,
+        help_text="雪花算法生成的唯一主键"
+    )
+
+    # UUID 供前后端通信
+    uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="自动生成的全局唯一 UUID"
+    )
+
+    # 所属演讲
+    presentation = models.ForeignKey(
+        Presentation,
+        on_delete=models.CASCADE,
+        related_name='images',
+        help_text="图片所属的演讲"
+    )
+
+    # 图片文件
+    image_file = models.ImageField(
+        upload_to='converted_images/',
+        help_text="转换后的图片文件（PDF/PPTX页）"
+    )
+
+    # 原文件类型（用于区分来源）
+    FILE_TYPE_CHOICES = (
+        ('pdf', 'PDF'),
+        ('pptx', 'PPTX'),
+    )
+    file_type = models.CharField(
+        max_length=10,
+        choices=FILE_TYPE_CHOICES,
+        help_text="原始文件类型"
+    )
+
+    # 页码信息（从1开始）
+    page_number = models.PositiveIntegerField(
+        help_text="该图片对应的页码"
+    )
+
+    # 创建时间
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('presentation', 'file_type', 'page_number')
+        ordering = ['presentation', 'file_type', 'page_number']
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = next(generator)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.presentation.title} - {self.file_type.upper()} 第{self.page_number}页"
+
+
 
 #题目模型
 class PopQuiz(models.Model):

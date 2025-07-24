@@ -120,13 +120,15 @@ onMounted(() => {
       <!-- 右侧资料栏 -->
       <div class="sidebar">
         <div class="sidebar-header">
-          <h3>相关资料</h3>
-          <img
-            src="@/assets/upload.svg"
-            alt="上传"
-            class="upload-icon"
-            @click="triggerUpload"
-          />
+          <div class="sidebar-title">
+            <h3>相关资料</h3>
+            <img
+              src="@/assets/upload.svg"
+              alt="上传"
+              class="upload-icon"
+              @click="triggerUpload"
+            />
+          </div>
           <input
             ref="fileInput"
             type="file"
@@ -202,7 +204,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
 }
-
+.sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* 图标和文字之间的间距 */
+}
 .sidebar-header {
   display: flex;
   align-items: center;
