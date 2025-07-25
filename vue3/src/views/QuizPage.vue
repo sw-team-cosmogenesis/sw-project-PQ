@@ -7,6 +7,7 @@ interface QuizItem {
   uuid: string | number
   question_text: string
   options: (string | number)[]
+  correct_answers:string
 }
 
 interface Answer {
@@ -42,6 +43,16 @@ const handleSubmit = (answer: Answer) => {
   currentQuizIndex.value += 1
 }
 
+const checkAnswerCorrectness = (answer: Answer): boolean => {
+  const quiz = quizList.value.find(q => q.uuid === answer.quizId)
+  if (!quiz) return false
+  const selectedOptionLetter = typeof answer.answerText === 'string'
+    ? answer.answerText.toString().trim().charAt(0)
+    : ''
+  console.log(selectedOptionLetter,quiz.correct_answers)
+  return quiz.correct_answers.includes(selectedOptionLetter)
+}
+
 onMounted(fetchQuizzes)
 </script>
 
@@ -62,6 +73,8 @@ onMounted(fetchQuizzes)
       <ul>
         <li v-for="(answer, index) in answers" :key="index">
           第 {{ index + 1 }} 题：选项 {{ answer.answerText }}
+          <span v-if="checkAnswerCorrectness(answer)">✅ 正确</span>
+          <span v-else>❌ 错误</span>
         </li>
       </ul>
     </div>

@@ -4,7 +4,7 @@ import { ref, defineProps, defineEmits } from 'vue'
 const props = defineProps<{
   question: string,
   options: Array<string | number>,
-  quizId: string | number  // 可选的题目ID
+  quizId: string | number
 }>()
 
 const emits = defineEmits(['submit'])
