@@ -1,3 +1,4 @@
+import json
 import os
 import comtypes.client
 
@@ -25,7 +26,7 @@ from openai import OpenAI
 from django.conf import settings
 
 
-def upload_images_to_oss(image_paths):
+def upload_images_to_oss(image_paths, presentation_uuid):
     """
     上传图片到阿里云 OSS，返回公开访问 URL 列表
     """
@@ -36,8 +37,8 @@ def upload_images_to_oss(image_paths):
     for path in image_paths:
         filename = f"{uuid.uuid4().hex}.png"
         with open(path, 'rb') as f:
-            bucket.put_object(f"quiz-images/{filename}", f)
-        url = f"https://{bucket.bucket_name}.{os.getenv('OSS_ENDPOINT')}/quiz-images/{filename}"
+            bucket.put_object(f"{presentation_uuid}/{filename}", f)
+        url = f"https://{bucket.bucket_name}.{os.getenv('OSS_ENDPOINT')}/{presentation_uuid}/{filename}"
         urls.append(url)
     return urls
 
@@ -51,42 +52,65 @@ def generate_quiz_from_images(image_urls):
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
 
-    messages = []
-    for url in image_urls:
-        messages.append({"type": "image_url", "image_url": {"url": url}})
+    if not image_urls:
+        raise ValueError("图片列表为空，无法生成题目")
 
+        # 构建图像 + 文本 prompt 消息
+    content = [
+        {"type": "image_url", "image_url": {"url": url}}
+        for url in image_urls
+    ]
+
+    # 文字 prompt
+    prompt_text = """
+    根据以上所有图片为我生成三道单选题，要求：
+    1. 结合所有图片，深度思考并综合后再出题，让每道题目都能覆盖多张图片的内容
+    2. 每道单选题包含一个题干，四个选项，只有一个是正确答案
+    3. 生成的题目不要用markdown格式包裹，返回纯文本
+    4. 每道题目按照如下格式生成，返回合法 JSON 格式数组：
+    [
+      {
+        "question": "题目内容，不包括选项",
+        "options": [
+          "A. 选项A",
+          "B. 选项B",
+          "C. 选项C",
+          "D. 选项D"
+        ],
+        "answer": "只有正确选项序号"
+      },
+      {
+        "question": "题干内容2",
+        ...
+      },
+      ...
+    ]
+        """
+    content.append({"type": "text", "text": prompt_text})
+
+    messages = [
+        {
+            "role": "user",
+            "content": content
+        }
+    ]
+
+    # 调用 DashScope 多模态接口
     try:
         completion = client.chat.completions.create(
-            model=os.getenv("AI_MODEL"),
-            messages=[{"role": "user", "content": messages + """
-                根据以上所有图片为我生成三道单选题，要求：
-                1.结合所有图片，深度思考并综合后再出题，让每道题目都能覆盖多张图片的内容
-                2.每道单选题包含一个题干，四个选项，只有一个是正确答案
-                3.每道都题目按照如下格式生成,使用#包围的部分要替换成对应内容：
-                [
-                    {
-                    "question": "#此处替换为题干#",
-                    "options": ["A.#此处替换为第一个选项#", "B.#此处替换为第一个选项#", "C.#此处替换为第一个选项#", "D.#此处替换为第一个选项#"],
-                    "answer": "#此处替换为正确选项的编号（ABCD）#.#此处替换为正确选项内容#"
-                    },
-                    {
-                    #第二题...#
-                    },
-                    {
-                    #第三题...#
-                    },
-                ]
-                """}],
-                stream=True,
-            )
+            model=os.getenv("AI_MODEL", "qwen-omni-turbo"),
+            messages=messages,
+            modalities=["text"],
+            stream=True,
+            stream_options={"include_usage": True}
+        )
 
-        full_response = ""
+        full_content = ""
         for chunk in completion:
-            delta = chunk.choices[0].delta
-            if hasattr(delta, "content") and delta.content:
-                full_response += delta.content
+            if chunk.choices and chunk.choices[0].delta.content:
+                full_content += chunk.choices[0].delta.content
 
-        return full_response
+        return full_content
 
     except Exception as e:
-        raise RuntimeError(f"AI 生成题目失败: {e}")
+        raise RuntimeError("AI 生成题目失败: " + str(e))

@@ -94,7 +94,19 @@ const uploadMaterial = async (event: Event) => {
     alert('上传失败，请重试')
   }
 }
-
+// 题目生成
+const generateQuiz = async () => {
+  try {
+    const res = await api.post('/generate-quiz/', null, {
+      params: { presentation_uuid: uuid }
+    })
+    alert('题目生成成功！')
+    console.log(res.data)
+  } catch (error) {
+    console.error('生成题目失败:', error)
+    alert('生成题目失败，请稍后再试')
+  }
+}
 onMounted(() => {
   fetchPresentation()
   fetchMaterials()
@@ -135,7 +147,9 @@ onMounted(() => {
             style="display: none"
             @change="uploadMaterial"
           />
+          <button class="generate-btn" @click="generateQuiz">生成题目</button>
         </div>
+
         <ul class="material-list">
           <li v-for="material in materials" :key="material.uuid">
             <a :href="material.file" target="_blank" rel="noopener noreferrer">
@@ -230,5 +244,15 @@ onMounted(() => {
 .material-list li {
   padding: 0.5rem 0;
   border-bottom: 1px solid #eee;
+}
+.generate-btn {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
 }
 </style>

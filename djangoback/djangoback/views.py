@@ -6,6 +6,7 @@ from rest_framework import viewsets, permissions, status, serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
 
 from .models import Presentation, PopQuiz, PresentationParticipant, RegisteredUser, MediaFile
 from .serializers import (
@@ -49,6 +50,7 @@ class PopQuizViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PopQuiz.objects.all()
     serializer_class = PopQuizSerializer
     lookup_field = 'uuid'
+    permission_classes = [AllowAny]
 
 from urllib.parse import unquote
 from django.core.files.base import ContentFile
@@ -212,19 +214,21 @@ class GenerateQuizAPIView(APIView):
 
         # 获取演讲对应的所有图片路径
         images = presentation.images.all()
-        local_paths = [img.image.path for img in images if img.image]
+        local_paths = [img.image_file.path for img in images if img.image_file]
 
-        # 1. 上传到 OSS
-        image_urls = upload_images_to_oss(local_paths)
+        # 上传到 OSS
+        image_urls = upload_images_to_oss(local_paths, presentation_uuid)
 
-        # 2. 调用 AI 生成题目
+        # 调用 AI 生成题目
         try:
             quiz_data = generate_quiz_from_images(image_urls)
+            print("AI返回内容:", quiz_data)
             quiz_list = json.loads(quiz_data)  # 需确保 AI 返回为合法 JSON
         except Exception as e:
+            print("异常信息:", str(e))
             return Response({"detail": str(e)}, status=500)
 
-        # 3. 存储题目
+        # 存储题目
         for i, q in enumerate(quiz_list):
             PopQuiz.objects.create(
                 question_type='choice',
