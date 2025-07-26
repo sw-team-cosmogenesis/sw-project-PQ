@@ -68,3 +68,25 @@
 +---poppler-24.08.0
 ├── README.md
 └── requirements.txt   # 后端依赖
+
+# 🔧 安装与运行
+## 前端
+```bash
+cd vue3
+npm install
+npm run dev
+```
+## 后端
+```bash
+cd djangoback
+python -m venv .venv
+pip install -r requirements.txt
+python manage.py makemigration
+python manage.py migrate
+python manage.py runserver
+```
+# 🔐 环境变量
+```
+
+```
+
