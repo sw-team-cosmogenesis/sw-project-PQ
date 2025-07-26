@@ -87,6 +87,22 @@ python manage.py runserver
 ```
 # 🔐 环境变量
 ```
+# 阿里云 OSS 配置
+OSS_ACCESS_KEY_ID=your OSS_ACCESS_KEY_ID
+OSS_ACCESS_KEY_SECRET=your OSS_ACCESS_KEY_SECRET
+OSS_BUCKET_NAME=your OSS_BUCKET_NAME
+OSS_ENDPOINT= your OSS_ENDPOINT
 
+# 通义千问 AI API Key
+DASHSCOPE_API_KEY=your DASHSCOPE_API_KEY
+AI_MODEL=your AI_MODEL
+
+# Poppler 工具
+POPPLER_PATH=your POPPLER_PATH
 ```
+
+# 第三方工具
+poppler：https://github.com/oschwartz10612/poppler-windows/releases
+阿里云OSS：https://help.aliyun.com/zh/oss/
+通义千问：https://www.aliyun.com/product/tongyi?utm_content=se_1021866438
 
